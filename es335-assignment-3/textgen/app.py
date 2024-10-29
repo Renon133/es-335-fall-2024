@@ -16,7 +16,7 @@ st.sidebar.write("Made using a simple 2 hidden layered Neural Network, this text
 
 st.sidebar.write("Here, the intension is not to generate meaningful sentences, we require a lot of compute for that. This app aims at showing how a vanilla neural network is also capable of capturing the format of English language, and generate words that are (very close to) valid words. Notice that the model uses capital letters (including capital I), punctuation marks and fullstops nearly correct. The text is generated paragraph wise, because the model learnt this from the text corpus.")
 
-st.sidebar.write("This model was trained on a simple 600 KB text corpus titled: 'Shakespeare'")
+st.sidebar.write("This model was trained on a simple 4.52 MB text corpus titled: 'Shakespeare'")
 
 no_of_chars = st.slider("Number of characters to be generated", 100, 2000, 1000)
 
@@ -101,19 +101,24 @@ class NextChar(nn.Module):
   
 # Embedding layer for the context
 
-# emb_dim = 10
+# emb_dim = 15
 emb_dim = st.selectbox(
-  'Select embedding size',
-  (1,2,5,10,15,30,50,100), index=4)
+  'Select Embedding Size',
+  (15,32), index=0)
 emb = torch.nn.Embedding(len(stoi), emb_dim)
 
 # block_size = 15
 block_size = st.selectbox(
-  'Select block size',
+  'Select Block Size',
   (15,50), index=0)
 emb = torch.nn.Embedding(len(stoi), emb_dim)
 model = NextChar(block_size, len(stoi), emb_dim, 500, 300).to(device)
 model = torch.compile(model)
+
+# Activation Function
+actFunc = st.selectbox(
+  'Select Activation Function',
+  ("sin", "relu", "tanh"), index=0)
 
 inp = st.text_input("Enter text", placeholder="Enter valid English text.")
 
@@ -122,7 +127,7 @@ btn = st.button("Generate")
 if btn:
     st.subheader("Seed Text")
     type_text(inp)
-    model.load_state_dict(torch.load("Model_emb"+str(emb_dim)+"_block_size_"+str(block_size)+".pth", map_location = device, weights_only=True))
+    model.load_state_dict(torch.load("Model_emb"+str(emb_dim)+"_block_size_"+str(block_size)+"_"+actFunc+".pth", map_location = device, weights_only=True))
     # model.load_state_dict(torch.load("gt_eng_model_upper_two_hid_layer_emb"+str(emb_dim)+"_block_size_"+str(block_size)+".pth", map_location = device))
     gen_txt = generate_text(model, inp, itos, stoi, block_size, no_of_chars)
     st.subheader("Generated Text")
